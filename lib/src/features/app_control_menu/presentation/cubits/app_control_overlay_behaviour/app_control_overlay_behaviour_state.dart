@@ -1,15 +1,5 @@
-part of 'overlay_view_notifier.dart';
-
-enum AppControlOvelayBehaviourStatus {
-  hiding,
-  showing,
-  hidden,
-  shown;
-
-  bool get isShown => this == shown;
-  bool get isInProgress => this == showing || this == hiding;
-  bool get isHidden => this == hiding;
-}
+import 'package:equatable/equatable.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/app_control_menu.dart';
 
 class AppControlOvelayBehaviourState extends Equatable {
   const AppControlOvelayBehaviourState({

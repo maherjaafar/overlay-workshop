@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:overlays_workshop/src/features/control_overlay.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/app_control_menu.dart';
+import 'package:overlay_plus/overlay_plus.dart';
 
 const _kAnimationDuration = Duration(milliseconds: 300);
 
@@ -16,25 +17,20 @@ class AppControlOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppControlOverlayBuilder(
-      overlayContent: Container(
-        height: 200,
-        color: Colors.white,
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            const Text('Overlay content'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text('Button'),
-            ),
-            const SizedBox(height: 16),
-          ],
+    final overlayHeight = context.screenHeight * 0.48;
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          lazy: false,
+          create: (_) => AppControlOvelayBehaviourCubit(
+              initialOverlayHeight: overlayHeight),
         ),
+      ],
+      child: AppControlOverlayBuilder(
+        overlayContent: const AppControlOverlayContent(),
+        height: overlayHeight,
+        child: child,
       ),
-      height: 300,
-      child: child,
     );
   }
 }
@@ -54,10 +50,11 @@ class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
   @override
   final double height;
 
-  OverlayEntry? _overlayEntry;
-
   @override
   Widget build(BuildContext context) {
+    final behaviorCubit = context.read<AppControlOvelayBehaviourCubit>();
+    final width = context.screenWidth * 0.8;
+    final overlayController = OverlayPlusController();
     return MultiBlocListener(
       listeners: [
         BlocListener<AppControlOvelayBehaviourCubit,
@@ -73,44 +70,33 @@ class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
             // Entry cubit
             final status = state.status;
             final shouldBeVisible = !status.isHidden;
-            final entryAlreadyExists = _overlayEntry != null;
+            final entryAlreadyExists = overlayController.isShowing;
             if (!entryAlreadyExists && shouldBeVisible) {
-              showOverlay(context);
+              overlayController.show();
             }
             final isCompletelyHidden = state.topPosition == -height;
             if (status.isHidden && isCompletelyHidden) {
               // Waiting for the animation to finish before hiding the [TemOverlay]
-              Timer(_kAnimationDuration, () => removeOverlay(context));
+              Timer(_kAnimationDuration, overlayController.hide);
             }
           },
         ),
       ],
-      child: _buildDragDetector(context: context, child: child),
-    );
-  }
-
-  void removeOverlay(BuildContext context) {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-    hideOverlay(context);
-  }
-
-  void showOverlay(BuildContext context) {
-    _overlayEntry = OverlayEntry(
-      maintainState: true,
-      canSizeOverlay: true,
-      builder: (innerContext) {
-        return Positioned(
-          child: BlocProvider.value(
-            value: context.read<AppControlOvelayBehaviourCubit>(),
+      child: OverlayPlus(
+        controller: overlayController,
+        hasPositioned: false,
+        overlayChildBuilder: (_) {
+          return BlocProvider.value(
+            value: behaviorCubit,
             child: _buildDragDetector(
               context: context,
+              controller: overlayController,
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [
                   _OverlayBackground(
-                    onBackgroundTap: () => removeOverlay(context),
-                    isShown: _overlayEntry != null,
+                    overlayController: overlayController,
+                    onBackgroundTap: () => hideOverlay(context),
                   ),
                   // Positioned to define the size of the overlay
                   BlocBuilder<AppControlOvelayBehaviourCubit,
@@ -125,7 +111,7 @@ class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
                     builder: (context, state) {
                       return _buildOverlayChild(
                         context: context,
-                        width: 700,
+                        width: width,
                         isAnimating: state.animate,
                         currentOverlayHeight: state.currentOverlayHeight,
                         topPosition: state.topPosition,
@@ -136,12 +122,12 @@ class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
                 ],
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+        child: _buildDragDetector(
+            context: context, child: child, controller: overlayController),
+      ),
     );
-
-    Overlay.of(context).insert(_overlayEntry!);
   }
 
   Widget _buildOverlayChild({
@@ -160,7 +146,7 @@ class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
       topPosition: topPosition,
       // Gesture detector to handle drag events
       child: Material(
-        color: Colors.black54,
+        color: Colors.grey,
         borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(16),
         ),
@@ -198,11 +184,12 @@ class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
   Widget _buildDragDetector({
     required BuildContext context,
     required Widget child,
+    required OverlayPlusController controller,
   }) {
     return OverlayWidgets.buildDragDetector(
       onDragStart: (details) => handleDragStart(context, details),
       onDragUpdate: (details) => handleDragUpdate(context, details),
-      onDragEnd: (details) => handleDragEnd(context, details, _overlayEntry),
+      onDragEnd: (details) => handleDragEnd(context, details, controller),
       child: child,
     );
   }
@@ -227,11 +214,11 @@ class OverlayWidgets {
 class _OverlayBackground extends StatelessWidget {
   const _OverlayBackground({
     required this.onBackgroundTap,
-    required this.isShown,
+    required this.overlayController,
   });
 
   final VoidCallback onBackgroundTap;
-  final bool isShown;
+  final OverlayPlusController overlayController;
 
   @override
   Widget build(BuildContext context) {
@@ -240,6 +227,7 @@ class _OverlayBackground extends StatelessWidget {
         AppControlOvelayBehaviourState, bool>(
       selector: (state) => state.overlayCompletelyVisible,
       builder: (context, isVisible) {
+        final isShown = overlayController.isShowing;
         final enabled = isVisible && isShown;
         return GestureDetector(
           behavior: HitTestBehavior.translucent,

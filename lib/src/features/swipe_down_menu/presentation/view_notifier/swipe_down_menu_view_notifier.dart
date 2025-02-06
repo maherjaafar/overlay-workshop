@@ -1,11 +1,8 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/app_control_menu.dart';
 
-part 'overlay_state.dart';
-
-class AppControlOvelayBehaviourCubit
-    extends Cubit<AppControlOvelayBehaviourState> {
-  AppControlOvelayBehaviourCubit({
+class SwipeDownMenuViewNotifier extends Cubit<AppControlOvelayBehaviourState> {
+  SwipeDownMenuViewNotifier({
     required double initialOverlayHeight,
   }) : super(
           AppControlOvelayBehaviourState(

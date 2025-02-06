@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:overlays_workshop/src/features/control_overlay/view_notifier/overlay_view_notifier.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/app_control_menu.dart';
 
-extension BehaviourNotifierX on BuildContext {
+extension AppControlOverlayBuildContextX on BuildContext {
   AppControlOvelayBehaviourCubit get behaviourCubit =>
       read<AppControlOvelayBehaviourCubit>();
 

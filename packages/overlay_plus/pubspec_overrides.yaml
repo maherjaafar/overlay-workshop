@@ -1,0 +1,4 @@
+# melos_managed_dependency_overrides: tem_lints
+dependency_overrides:
+  tem_lints:
+    path: ../tem_lints

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:overlays_workshop/src/features/control_overlay.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/presentation/cubits/app_control_overlay_behaviour/app_control_overlay_behaviour_cubit.dart';
+
+import 'src/features/app_control_menu/presentation/widgets/app_control_overlay.dart';
 
 void main() {
   runApp(const MyApp());

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:overlays_workshop/src/features/control_overlay.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/app_control_menu.dart';
+import 'package:overlay_plus/overlay_plus.dart';
+
+const kAppBarHeight = 56.0;
 
 mixin OverlayDragHandler on StatelessWidget {
   /// The user starts dragging the overlay
@@ -43,8 +46,11 @@ mixin OverlayDragHandler on StatelessWidget {
   /// The user stops dragging the overlay
   /// We check if the user dragged enough to show or hide the overlay
   /// We update the overlay position and height if needed
-  void handleDragEnd(BuildContext context, DragEndDetails details,
-      OverlayEntry? overlayEntry) {
+  void handleDragEnd(
+    BuildContext context,
+    DragEndDetails details,
+    OverlayPlusController controller,
+  ) {
     final behaviorCubit = context.behaviourCubit;
     behaviorCubit.updateIsAnimating(true);
     final topPosition = behaviorCubit.topPosition;
@@ -58,7 +64,7 @@ mixin OverlayDragHandler on StatelessWidget {
     }
 
     // Adjust overlay position if needed
-    if (_shouldResetOverlay(overlayEntry)) _setBehaviorValues(context);
+    if (_shouldResetOverlay(controller)) _setBehaviorValues(context);
   }
 
   void hideOverlay(BuildContext context) {
@@ -100,8 +106,8 @@ extension OverlayDragHandlerX on OverlayDragHandler {
     _currentDragPosition = details.globalPosition.dy;
   }
 
-  bool _shouldResetOverlay(OverlayEntry? overlayEntry) {
-    return overlayEntry?.mounted ?? false;
+  bool _shouldResetOverlay(OverlayPlusController controller) {
+    return controller.isShowing;
   }
 
   void _setBehaviorValues(BuildContext context,
@@ -112,7 +118,7 @@ extension OverlayDragHandlerX on OverlayDragHandler {
   // Getters
   double get _minimumDragDistance => height / 6;
   double get _minimumDistanceToMoveTheOverlay => 10;
-  double get _baseDragInterval => 80;
+  double get _baseDragInterval => kAppBarHeight;
 
   // Drag up
   double get dragUpDistance => _startDragPosition - _currentDragPosition;
