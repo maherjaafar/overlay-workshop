@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:overlays_workshop/src/features/app_control_menu/presentation/cubits/app_control_overlay_behaviour/app_control_overlay_behaviour_cubit.dart';
 
-import 'src/features/app_control_menu/presentation/widgets/app_control_overlay.dart';
+import 'src/features/swipe_down_menu/presentation/view/widgets/app_control_overlay.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,12 +18,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: BlocProvider(
-        create: (context) => AppControlOvelayBehaviourCubit(
-          initialOverlayHeight: 200,
-        ),
-        child: const MyHomePage(title: 'Flutter Demo Home Page'),
-      ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -70,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return AppControlOverlay(
+    return SwipeDownMenu(
       child: Scaffold(
         appBar: AppBar(
           // TRY THIS: Try changing the color here to a specific color (to

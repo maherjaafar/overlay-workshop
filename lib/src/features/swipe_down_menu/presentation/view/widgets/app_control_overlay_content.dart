@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class AppControlOverlayContent extends StatelessWidget {
-  const AppControlOverlayContent({super.key});
+class Content extends StatelessWidget {
+  const Content({super.key});
 
   @override
   Widget build(BuildContext context) {

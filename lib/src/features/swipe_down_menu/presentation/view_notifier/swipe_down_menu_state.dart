@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:overlays_workshop/src/features/app_control_menu/app_control_menu.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/domain/enums/app_control_overlay_behavior_status.dart';
 
 class SwipeDownMenuState extends Equatable {
   const SwipeDownMenuState({
@@ -23,6 +23,11 @@ class SwipeDownMenuState extends Equatable {
     );
   }
 
+  final AppControlOvelayBehaviourStatus status;
+  final bool animate;
+  final double currentOverlayHeight;
+  final double topPosition;
+
   bool get isCompletelyVisible => topPosition >= 0;
 
   @override
@@ -32,9 +37,4 @@ class SwipeDownMenuState extends Equatable {
         currentOverlayHeight,
         topPosition,
       ];
-
-  final AppControlOvelayBehaviourStatus status;
-  final bool animate;
-  final double currentOverlayHeight;
-  final double topPosition;
 }

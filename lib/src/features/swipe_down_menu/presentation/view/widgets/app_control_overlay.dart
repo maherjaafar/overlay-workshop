@@ -1,14 +1,22 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:overlays_workshop/src/features/app_control_menu/app_control_menu.dart';
 import 'package:overlay_plus/overlay_plus.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/domain/enums/app_control_overlay_behavior_status.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/domain/extensions/app_control_overlay_build_context_extension.dart';
+import 'package:overlays_workshop/src/features/swipe_down_menu/domain/model/swipe_down_menu_configuration.dart';
+import 'package:overlays_workshop/src/features/swipe_down_menu/domain/model/swipe_down_menu_details.dart';
+import 'package:overlays_workshop/src/features/swipe_down_menu/domain/repository/gestures_repository.dart';
+import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view/widgets/app_control_overlay_content.dart';
+import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view_notifier/swipe_down_menu_state.dart';
+import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view_notifier/swipe_down_menu_view_notifier.dart';
 
 const _kAnimationDuration = Duration(milliseconds: 300);
 
-class AppControlOverlay extends StatelessWidget {
-  const AppControlOverlay({
+class SwipeDownMenu extends StatelessWidget {
+  const SwipeDownMenu({
     required this.child,
     super.key,
   });
@@ -18,47 +26,55 @@ class AppControlOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final overlayHeight = context.screenHeight * 0.48;
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          lazy: false,
-          create: (_) => AppControlOvelayBehaviourCubit(
-              initialOverlayHeight: overlayHeight),
+    final overlayController = OverlayPlusController();
+    return RepositoryProvider(
+      create: (context) => SwipeDownMenuRepositoryImpl(
+        initialDetails: SwipeDownMenuDragDetails(
+          startDragPosition: 0,
+          currentDragPosition: 0,
+          configuration: SwipeDownMenuConfiguration.defaultConfiguration(
+            overlayHeight,
+          ),
         ),
-      ],
-      child: AppControlOverlayBuilder(
-        overlayContent: const AppControlOverlayContent(),
-        height: overlayHeight,
-        child: child,
+      ),
+      child: BlocProvider(
+        lazy: false,
+        create: (context) => SwipeDownMenuViewNotifier(
+          repository: context.read<SwipeDownMenuRepositoryImpl>(),
+          initialOverlayHeight: overlayHeight,
+        ),
+        child: _SwipeDownMenuView(
+          overlayContent: const Content(),
+          height: overlayHeight,
+          overlayController: overlayController,
+          child: child,
+        ),
       ),
     );
   }
 }
 
 // ignore: must_be_immutable
-class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
-  AppControlOverlayBuilder({
+class _SwipeDownMenuView extends StatelessWidget {
+  const _SwipeDownMenuView({
     required this.child,
     required this.overlayContent,
     required this.height,
-    super.key,
+    required this.overlayController,
   });
 
   final Widget child;
   final Widget overlayContent;
-
-  @override
   final double height;
+  final OverlayPlusController overlayController;
 
   @override
   Widget build(BuildContext context) {
-    final behaviorCubit = context.read<AppControlOvelayBehaviourCubit>();
+    final behaviorCubit = context.read<SwipeDownMenuViewNotifier>();
     final width = context.screenWidth * 0.8;
-    final overlayController = OverlayPlusController();
     return MultiBlocListener(
       listeners: [
-        BlocListener<AppControlOvelayBehaviourCubit,
-            AppControlOvelayBehaviourState>(
+        BlocListener<SwipeDownMenuViewNotifier, SwipeDownMenuState>(
           listenWhen: (previous, current) {
             final differentHeight =
                 previous.currentOverlayHeight != current.currentOverlayHeight;
@@ -85,6 +101,7 @@ class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
       child: OverlayPlus(
         controller: overlayController,
         hasPositioned: false,
+        maintainState: false,
         overlayChildBuilder: (_) {
           return BlocProvider.value(
             value: behaviorCubit,
@@ -96,11 +113,11 @@ class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
                 children: [
                   _OverlayBackground(
                     overlayController: overlayController,
-                    onBackgroundTap: () => hideOverlay(context),
+                    onBackgroundTap:
+                        context.read<SwipeDownMenuViewNotifier>().hideOverlay,
                   ),
                   // Positioned to define the size of the overlay
-                  BlocBuilder<AppControlOvelayBehaviourCubit,
-                      AppControlOvelayBehaviourState>(
+                  BlocBuilder<SwipeDownMenuViewNotifier, SwipeDownMenuState>(
                     buildWhen: (previous, current) {
                       final differentHeight = previous.currentOverlayHeight !=
                           current.currentOverlayHeight;
@@ -186,10 +203,12 @@ class AppControlOverlayBuilder extends StatelessWidget with OverlayDragHandler {
     required Widget child,
     required OverlayPlusController controller,
   }) {
+    final cubit = context.read<SwipeDownMenuViewNotifier>();
     return OverlayWidgets.buildDragDetector(
-      onDragStart: (details) => handleDragStart(context, details),
-      onDragUpdate: (details) => handleDragUpdate(context, details),
-      onDragEnd: (details) => handleDragEnd(context, details, controller),
+      onDragStart: cubit.handleDragStart,
+      onDragUpdate: (details) =>
+          cubit.handleDragUpdate(details, context.screenHeight),
+      onDragEnd: (_) => cubit.handleDragEnd(controller),
       child: child,
     );
   }
@@ -223,9 +242,8 @@ class _OverlayBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Fade background when overlay is shown
-    return BlocSelector<AppControlOvelayBehaviourCubit,
-        AppControlOvelayBehaviourState, bool>(
-      selector: (state) => state.overlayCompletelyVisible,
+    return BlocSelector<SwipeDownMenuViewNotifier, SwipeDownMenuState, bool>(
+      selector: (state) => state.isCompletelyVisible,
       builder: (context, isVisible) {
         final isShown = overlayController.isShowing;
         final enabled = isVisible && isShown;
@@ -234,7 +252,7 @@ class _OverlayBackground extends StatelessWidget {
           onTapUp: enabled ? (_) => onBackgroundTap() : null,
           child: AnimatedContainer(
             duration: _kAnimationDuration,
-            color: enabled ? Colors.black.withOpacity(0.6) : Colors.transparent,
+            color: enabled ? Colors.black54 : Colors.transparent,
           ),
         );
       },
