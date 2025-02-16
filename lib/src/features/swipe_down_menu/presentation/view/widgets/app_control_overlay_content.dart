@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:overlays_workshop/src/features/app_control_menu/domain/extensions/app_control_overlay_build_context_extension.dart';
 
-class Content extends StatelessWidget {
+GlobalKey contentKey = GlobalKey();
+
+class Content extends StatefulWidget {
   const Content({super.key});
 
   @override
+  State<Content> createState() => _ContentState();
+}
+
+class _ContentState extends State<Content> {
+  @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      constraints: BoxConstraints.tight(
+        Size(
+          context.screenWidth,
+          context.screenHeight * 0.3,
+        ),
+      ),
+      height: context.screenHeight * 0.3,
       padding: const EdgeInsets.all(16).copyWith(top: 20),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
           return Column(
+            key: contentKey,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Slider(
                 value: 0.5,
@@ -20,7 +37,6 @@ class Content extends StatelessWidget {
                 value: 0.5,
                 onChanged: (value) {},
               ),
-              const Spacer(),
               _buildDragLine(width: width * 0.2),
             ],
           );

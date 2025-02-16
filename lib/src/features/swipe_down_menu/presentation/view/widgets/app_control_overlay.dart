@@ -24,27 +24,24 @@ class SwipeDownMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final overlayHeight = context.screenHeight * 0.48;
     final overlayController = OverlayPlusController();
+    final screenHeight = context.screenHeight;
     return RepositoryProvider(
       create: (context) => SwipeDownMenuRepositoryImpl(
         initialDetails: SwipeDownMenuDragDetails(
           startDragPosition: 0,
           currentDragPosition: 0,
-          configuration: SwipeDownMenuConfiguration.defaultConfiguration(
-            overlayHeight,
-          ),
+          configuration: SwipeDownMenuConfiguration.defaultConfiguration(500),
         ),
       ),
       child: BlocProvider(
         lazy: false,
         create: (context) => SwipeDownMenuViewNotifier(
+          initialContentHeight: screenHeight,
           repository: context.read<SwipeDownMenuRepositoryImpl>(),
-          initialOverlayHeight: overlayHeight,
         ),
         child: _SwipeDownMenuView(
-          overlayContent: const Content(),
-          height: overlayHeight,
+          overlayContent: Content(),
           overlayController: overlayController,
           child: child,
         ),
@@ -58,13 +55,11 @@ class _SwipeDownMenuView extends StatelessWidget {
   const _SwipeDownMenuView({
     required this.child,
     required this.overlayContent,
-    required this.height,
     required this.overlayController,
   });
 
   final Widget child;
   final Widget overlayContent;
-  final double height;
   final OverlayPlusController overlayController;
 
   @override
@@ -88,8 +83,24 @@ class _SwipeDownMenuView extends StatelessWidget {
             final entryAlreadyExists = overlayController.isShowing;
             if (!entryAlreadyExists && shouldBeVisible) {
               overlayController.show();
+              WidgetsBinding.instance.addPostFrameCallback(
+                (_) {
+                  debugPrint('Screen height is ${context.screenHeight}');
+                  final renderBox = contentKey.currentContext
+                      ?.findRenderObject() as RenderBox?;
+                  if (renderBox == null) return debugPrint('RenderBox is null');
+                  final height = renderBox.size.height;
+                  context
+                      .read<SwipeDownMenuViewNotifier>()
+                      .setContentHeight(height);
+                  // context
+                  //     .read<SwipeDownMenuViewNotifier>()
+                  //     .updateCurrentOverlayHeight(height);
+                },
+              );
             }
-            final isCompletelyHidden = state.topPosition == -height;
+            final isCompletelyHidden =
+                !state.hasHeight || state.topPosition == -state.contentHeight;
             if (status.isHidden && isCompletelyHidden) {
               // Waiting for the animation to finish before hiding the [TemOverlay]
               Timer(_kAnimationDuration, overlayController.hide);
@@ -120,9 +131,14 @@ class _SwipeDownMenuView extends StatelessWidget {
                     buildWhen: (previous, current) {
                       final differentHeight = previous.currentOverlayHeight !=
                           current.currentOverlayHeight;
+                      final differentContentHeight =
+                          previous.contentHeight != current.contentHeight;
                       final differentTopPosition =
                           previous.topPosition != current.topPosition;
-                      return differentHeight || differentTopPosition;
+
+                      return differentContentHeight ||
+                          differentHeight ||
+                          differentTopPosition;
                     },
                     builder: (context, state) {
                       return _buildOverlayChild(
@@ -130,6 +146,7 @@ class _SwipeDownMenuView extends StatelessWidget {
                         width: width,
                         isAnimating: state.animate,
                         currentOverlayHeight: state.currentOverlayHeight,
+                        contentHeight: state.contentHeight,
                         topPosition: state.topPosition,
                         child: overlayContent,
                       );
@@ -154,6 +171,7 @@ class _SwipeDownMenuView extends StatelessWidget {
     required Widget child,
     required bool isAnimating,
     required double width,
+    required double contentHeight,
     required double currentOverlayHeight,
     required double topPosition,
   }) {
@@ -171,8 +189,8 @@ class _SwipeDownMenuView extends StatelessWidget {
         ),
         child: AnimatedContainer(
           duration: _kAnimationDuration,
-          padding: currentOverlayHeight - height > 0
-              ? EdgeInsets.only(top: currentOverlayHeight - height)
+          padding: currentOverlayHeight - contentHeight > 0
+              ? EdgeInsets.only(top: currentOverlayHeight - contentHeight)
               : EdgeInsets.zero,
           child: overlayContent,
         ),

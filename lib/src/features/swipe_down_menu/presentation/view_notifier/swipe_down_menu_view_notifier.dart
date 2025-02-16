@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:overlays_workshop/src/features/app_control_menu/domain/enums/app_control_overlay_behavior_status.dart';
@@ -8,15 +10,16 @@ import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view
 
 class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
   SwipeDownMenuViewNotifier({
-    required double initialOverlayHeight,
+    required double initialContentHeight,
     required SwipeDownMenuRepository repository,
   })  : _repository = repository,
         super(
           SwipeDownMenuState(
             status: AppControlOvelayBehaviourStatus.hidden,
             animate: false,
-            currentOverlayHeight: initialOverlayHeight,
-            topPosition: -initialOverlayHeight,
+            currentOverlayHeight: 0,
+            topPosition: 0,
+            contentHeight: initialContentHeight,
           ),
         );
 
@@ -24,6 +27,15 @@ class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
   void handleDragStart(DragStartDetails details) {
     updateIsAnimating(false);
     _repository.handleDragStart(details);
+  }
+
+  void setContentHeight(double height) {
+    emit(state.copyWith(contentHeight: height));
+    _repository.updateDragDetails(
+      dragDetails.copyWith(
+        configuration: dragDetails.configuration.copyWith(height: height),
+      ),
+    );
   }
 
   /// The user already started dragging the overlay
@@ -68,7 +80,7 @@ class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
     updateIsAnimating(true);
     // Determine if drag down was enough to show the overlay
     if (dragDetails.hasDragDownEnough) {
-      return setValues(newHeight: dragDetails.height, status: status);
+      setValues(newHeight: dragDetails.height, status: status);
     }
 
     // Determine if drag up was enough to hide the overlay
@@ -154,6 +166,7 @@ class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
   @override
   Future<void> close() {
     _hideOverlay();
+    _dragDetailsSubscription.cancel();
     return super.close();
   }
 
@@ -165,6 +178,9 @@ class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
   SwipeDownMenuDragDetails get dragDetails => _repository.dragDetails;
 
   bool get shouldHideOverlay => topPosition == -currentOverlayHeight;
+
+  late final StreamSubscription<SwipeDownMenuDragDetails>
+      _dragDetailsSubscription;
 
   final SwipeDownMenuRepository _repository;
 }

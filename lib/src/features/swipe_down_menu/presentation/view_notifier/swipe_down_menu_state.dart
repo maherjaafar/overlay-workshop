@@ -6,6 +6,7 @@ class SwipeDownMenuState extends Equatable {
     required this.status,
     required this.animate,
     required this.currentOverlayHeight,
+    required this.contentHeight,
     required this.topPosition,
   });
 
@@ -13,28 +14,35 @@ class SwipeDownMenuState extends Equatable {
     AppControlOvelayBehaviourStatus? status,
     bool? animate,
     double? currentOverlayHeight,
+    double? contentHeight,
     double? topPosition,
   }) {
     return SwipeDownMenuState(
       status: status ?? this.status,
       animate: animate ?? this.animate,
       currentOverlayHeight: currentOverlayHeight ?? this.currentOverlayHeight,
+      contentHeight: contentHeight ?? this.contentHeight,
       topPosition: topPosition ?? this.topPosition,
     );
   }
 
   final AppControlOvelayBehaviourStatus status;
   final bool animate;
+  // This can change because of the drag
   final double currentOverlayHeight;
+  // This height is fixed
+  final double contentHeight;
   final double topPosition;
 
+  bool get hasHeight => true;
   bool get isCompletelyVisible => topPosition >= 0;
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         status,
         animate,
         currentOverlayHeight,
+        contentHeight,
         topPosition,
       ];
 }

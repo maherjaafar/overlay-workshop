@@ -10,8 +10,6 @@ abstract class SwipeDownMenuRepository {
 
   void updateDragDetails(SwipeDownMenuDragDetails details);
 
-  Stream<SwipeDownMenuDragDetails> get dragDetailsStream;
-
   SwipeDownMenuDragDetails get dragDetails;
 }
 
@@ -56,9 +54,11 @@ class SwipeDownMenuRepositoryImpl implements SwipeDownMenuRepository {
     dragDetails = details;
   }
 
-  @override
-  Stream<SwipeDownMenuDragDetails> get dragDetailsStream =>
-      _dragDetailsSubject.stream;
+  void setHeight(double height) {
+    dragDetails = dragDetails.copyWith(
+      configuration: dragDetails.configuration.copyWith(height: height),
+    );
+  }
 
   @override
   SwipeDownMenuDragDetails get dragDetails => _dragDetailsSubject.value;
