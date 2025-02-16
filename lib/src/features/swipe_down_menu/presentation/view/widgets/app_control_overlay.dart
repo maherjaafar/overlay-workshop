@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -142,7 +141,10 @@ class _SwipeDownMenuView extends StatelessWidget {
           );
         },
         child: _buildDragDetector(
-            context: context, child: child, controller: overlayController),
+          context: context,
+          child: child,
+          controller: overlayController,
+        ),
       ),
     );
   }
@@ -206,8 +208,10 @@ class _SwipeDownMenuView extends StatelessWidget {
     final cubit = context.read<SwipeDownMenuViewNotifier>();
     return OverlayWidgets.buildDragDetector(
       onDragStart: cubit.handleDragStart,
-      onDragUpdate: (details) =>
-          cubit.handleDragUpdate(details, context.screenHeight),
+      onDragUpdate: (details) => cubit.handleDragUpdate(
+        details,
+        context.screenHeight,
+      ),
       onDragEnd: (_) => cubit.handleDragEnd(controller),
       child: child,
     );
