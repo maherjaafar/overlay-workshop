@@ -25,19 +25,15 @@ class SwipeDownMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final overlayController = OverlayPlusController();
-    final screenHeight = context.screenHeight;
     return RepositoryProvider(
       create: (context) => SwipeDownMenuRepositoryImpl(
-        initialDetails: SwipeDownMenuDragDetails(
-          startDragPosition: 0,
-          currentDragPosition: 0,
-          configuration: SwipeDownMenuConfiguration.defaultConfiguration(500),
+        initialDetails: SwipeDownMenuDragDetails.defaultConfig(
+          SwipeDownMenuConfiguration.defaultConfiguration(),
         ),
       ),
       child: BlocProvider(
         lazy: false,
         create: (context) => SwipeDownMenuViewNotifier(
-          initialContentHeight: screenHeight,
           repository: context.read<SwipeDownMenuRepositoryImpl>(),
         ),
         child: _SwipeDownMenuView(
@@ -76,7 +72,7 @@ class _SwipeDownMenuView extends StatelessWidget {
                 previous.topPosition != current.topPosition;
             return differentHeight || differentTopPosition;
           },
-          listener: (context, state) {
+          listener: (context, state) async {
             // Entry cubit
             final status = state.status;
             final shouldBeVisible = !status.isHidden;
@@ -90,17 +86,15 @@ class _SwipeDownMenuView extends StatelessWidget {
                       ?.findRenderObject() as RenderBox?;
                   if (renderBox == null) return debugPrint('RenderBox is null');
                   final height = renderBox.size.height;
+                  debugPrint('Content height is $height');
                   context
                       .read<SwipeDownMenuViewNotifier>()
                       .setContentHeight(height);
-                  // context
-                  //     .read<SwipeDownMenuViewNotifier>()
-                  //     .updateCurrentOverlayHeight(height);
                 },
               );
             }
             final isCompletelyHidden =
-                !state.hasHeight || state.topPosition == -state.contentHeight;
+                state.hasHeight && state.topPosition == -state.contentHeight!;
             if (status.isHidden && isCompletelyHidden) {
               // Waiting for the animation to finish before hiding the [TemOverlay]
               Timer(_kAnimationDuration, overlayController.hide);
@@ -111,7 +105,7 @@ class _SwipeDownMenuView extends StatelessWidget {
       child: OverlayPlus(
         controller: overlayController,
         hasPositioned: false,
-        maintainState: false,
+        maintainState: true,
         overlayChildBuilder: (_) {
           return BlocProvider.value(
             value: behaviorCubit,
@@ -171,8 +165,8 @@ class _SwipeDownMenuView extends StatelessWidget {
     required Widget child,
     required bool isAnimating,
     required double width,
-    required double contentHeight,
-    required double currentOverlayHeight,
+    required double? contentHeight,
+    required double? currentOverlayHeight,
     required double topPosition,
   }) {
     return _buildPositioned(
@@ -189,9 +183,11 @@ class _SwipeDownMenuView extends StatelessWidget {
         ),
         child: AnimatedContainer(
           duration: _kAnimationDuration,
-          padding: currentOverlayHeight - contentHeight > 0
-              ? EdgeInsets.only(top: currentOverlayHeight - contentHeight)
-              : EdgeInsets.zero,
+          padding: currentOverlayHeight == null || contentHeight == null
+              ? EdgeInsets.zero
+              : currentOverlayHeight - contentHeight > 0
+                  ? EdgeInsets.only(top: currentOverlayHeight - contentHeight)
+                  : EdgeInsets.zero,
           child: overlayContent,
         ),
       ),
@@ -203,7 +199,7 @@ class _SwipeDownMenuView extends StatelessWidget {
     required Widget child,
     required bool isAnimating,
     required double overlayWidth,
-    required double currentOverlayHeight,
+    required double? currentOverlayHeight,
     required double topPosition,
     double? leftPosition,
   }) {

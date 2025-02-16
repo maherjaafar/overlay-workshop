@@ -55,6 +55,9 @@ class SwipeDownMenuRepositoryImpl implements SwipeDownMenuRepository {
   }
 
   void setHeight(double height) {
+    debugPrint(
+      'setHeight called with height: $height, current height: ${dragDetails.configuration.height}',
+    );
     dragDetails = dragDetails.copyWith(
       configuration: dragDetails.configuration.copyWith(height: height),
     );

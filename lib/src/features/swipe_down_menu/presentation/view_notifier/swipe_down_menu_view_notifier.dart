@@ -10,16 +10,15 @@ import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view
 
 class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
   SwipeDownMenuViewNotifier({
-    required double initialContentHeight,
     required SwipeDownMenuRepository repository,
   })  : _repository = repository,
         super(
           SwipeDownMenuState(
             status: AppControlOvelayBehaviourStatus.hidden,
             animate: false,
-            currentOverlayHeight: 0,
             topPosition: 0,
-            contentHeight: initialContentHeight,
+            currentOverlayHeight: null,
+            contentHeight: null,
           ),
         );
 
@@ -30,24 +29,23 @@ class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
   }
 
   void setContentHeight(double height) {
-    emit(state.copyWith(contentHeight: height));
     _repository.updateDragDetails(
       dragDetails.copyWith(
         configuration: dragDetails.configuration.copyWith(height: height),
       ),
     );
+    emit(state.copyWith(contentHeight: height, currentOverlayHeight: height));
   }
 
   /// The user already started dragging the overlay
   void handleDragUpdate(DragUpdateDetails details, double maxHeight) {
     void setTopPosition([double? topPosition]) {
-      final newTopPosition = topPosition ??
-          _repository.dragDetails.currentDragPosition - currentOverlayHeight;
+      late final newTopPosition = topPosition ??
+          _repository.dragDetails.currentDragPosition - currentOverlayHeight!;
       updateTopPosition(
-        newTopPosition.clamp(
-          -_repository.dragDetails.height,
-          0,
-        ),
+        !_repository.dragDetails.hasHeight || currentOverlayHeight == null
+            ? -50
+            : newTopPosition.clamp(-_repository.dragDetails.height!, 0),
       );
     }
 
@@ -79,35 +77,37 @@ class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
   void handleDragEnd(OverlayPlusController controller) {
     updateIsAnimating(true);
     // Determine if drag down was enough to show the overlay
-    if (dragDetails.hasDragDownEnough) {
-      setValues(newHeight: dragDetails.height, status: status);
+    if (dragDetails.hasDragDownEnough && dragDetails.hasHeight) {
+      setValues(newHeight: dragDetails.height!, status: status);
     }
 
     // Determine if drag up was enough to hide the overlay
-    if (dragDetails.checkHasDragUpEnough(
-      topPosition,
-      currentOverlayHeight,
-    )) {
+    if (currentOverlayHeight != null &&
+        dragDetails.checkHasDragUpEnough(
+          topPosition,
+          currentOverlayHeight!,
+        )) {
       hideOverlay();
     }
 
     // Adjust overlay position if needed
-    if (controller.isShowing) {
-      setValues(newHeight: dragDetails.height);
+    if (controller.isShowing && dragDetails.hasHeight) {
+      setValues(newHeight: dragDetails.height!);
     }
   }
 
   void hideOverlay() {
+    if (!dragDetails.hasHeight) return;
     setValues(
       status: AppControlOvelayBehaviourStatus.hidden,
-      topPosition: -dragDetails.height,
-      newHeight: dragDetails.height,
+      topPosition: -dragDetails.height!,
+      newHeight: dragDetails.height!,
     );
   }
 
   void _adjustHeight({required double maxHeight}) {
     if (overlayCompletelyVisible) {
-      final newHeight = dragDetails.height + (dragDetails.stretchHeight * 0.3);
+      final newHeight = dragDetails.height! + (dragDetails.stretchHeight * 0.3);
       updateCurrentOverlayHeight(
         newHeight > maxHeight ? maxHeight : newHeight,
       );
@@ -157,7 +157,7 @@ class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
     emit(
       state.copyWith(
         animate: true,
-        topPosition: -currentOverlayHeight,
+        topPosition: -currentOverlayHeight!,
         status: AppControlOvelayBehaviourStatus.hidden,
       ),
     );
@@ -173,11 +173,12 @@ class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
   AppControlOvelayBehaviourStatus get status => state.status;
   double get topPosition => state.topPosition;
   bool get overlayCompletelyVisible => state.isCompletelyVisible;
-  double get currentOverlayHeight => state.currentOverlayHeight;
+  double? get currentOverlayHeight => state.currentOverlayHeight;
 
   SwipeDownMenuDragDetails get dragDetails => _repository.dragDetails;
 
-  bool get shouldHideOverlay => topPosition == -currentOverlayHeight;
+  bool get shouldHideOverlay =>
+      currentOverlayHeight != null && topPosition == -currentOverlayHeight!;
 
   late final StreamSubscription<SwipeDownMenuDragDetails>
       _dragDetailsSubscription;

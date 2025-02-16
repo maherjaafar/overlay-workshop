@@ -14,6 +14,7 @@ class _ContentState extends State<Content> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: contentKey,
       constraints: BoxConstraints.tight(
         Size(
           context.screenWidth,
@@ -26,7 +27,6 @@ class _ContentState extends State<Content> {
         builder: (context, constraints) {
           final width = constraints.maxWidth;
           return Column(
-            key: contentKey,
             mainAxisSize: MainAxisSize.min,
             children: [
               Slider(

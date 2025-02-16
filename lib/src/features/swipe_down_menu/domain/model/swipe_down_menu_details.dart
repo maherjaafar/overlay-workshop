@@ -8,6 +8,10 @@ class SwipeDownMenuDragDetails extends Equatable {
     required this.configuration,
   });
 
+  const SwipeDownMenuDragDetails.defaultConfig(this.configuration)
+      : startDragPosition = 0,
+        currentDragPosition = 0;
+
   SwipeDownMenuDragDetails copyWith({
     double? startDragPosition,
     double? currentDragPosition,
@@ -24,12 +28,14 @@ class SwipeDownMenuDragDetails extends Equatable {
   final double currentDragPosition;
   final SwipeDownMenuConfiguration configuration;
 
-  double get height => configuration.height;
+  double? get height => configuration.height;
+  bool get hasHeight => height != null;
 
   // Drag up
   double get dragUpDistance => startDragPosition - currentDragPosition;
   double get _dragUpInterval => configuration.baseDragInterval / 1.7;
-  bool get canStartDragUp => startDragPosition >= height - _dragUpInterval;
+  bool get canStartDragUp =>
+      !hasHeight ? false : startDragPosition >= height! - _dragUpInterval;
   double get dragDownDistance => currentDragPosition - startDragPosition;
   bool get correctDragUpRange =>
       canStartDragUp && dragUpDistance > configuration.minimumDistanceToMove;
@@ -48,11 +54,13 @@ class SwipeDownMenuDragDetails extends Equatable {
   }
 
   // Stretch overlay
-  bool get canStretchOverlay =>
-      startDragPosition <= height && currentDragPosition > height;
+  bool get canStretchOverlay => !hasHeight
+      ? false
+      : startDragPosition <= height! && currentDragPosition > height!;
 
   double get stretchHeight {
-    final stretchHeight = currentDragPosition - height;
+    if (!hasHeight) return 0;
+    final stretchHeight = currentDragPosition - height!;
     return stretchHeight > 0 ? stretchHeight : 0;
   }
 
