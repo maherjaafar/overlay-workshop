@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:overlays_workshop/src/features/home/domain/constants/home_panorama_assets.dart';
 import 'package:overlays_workshop/src/features/home/presentation/widgets/panorama_widget.dart';
-import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view/widgets/app_control_overlay.dart';
 import 'package:overlay_plus/overlay_plus.dart';
+import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view/widgets/swipe_down_menu.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
