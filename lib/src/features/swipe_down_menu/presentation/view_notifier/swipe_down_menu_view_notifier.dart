@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:overlays_workshop/src/features/app_control_menu/domain/enums/app_control_overlay_behavior_status.dart';
 import 'package:overlays_workshop/src/features/swipe_down_menu/domain/model/swipe_down_menu_details.dart';
 import 'package:overlays_workshop/src/features/swipe_down_menu/domain/repository/gestures_repository.dart';
-import 'package:overlay_plus/overlay_plus.dart';
 import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view_notifier/swipe_down_menu_state.dart';
 
 class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
@@ -74,7 +73,7 @@ class SwipeDownMenuViewNotifier extends Cubit<SwipeDownMenuState> {
   /// The user stops dragging the overlay
   /// We check if the user dragged enough to show or hide the overlay
   /// We update the overlay position and height if needed
-  void handleDragEnd(OverlayPlusController controller) {
+  void handleDragEnd(OverlayPortalController controller) {
     updateIsAnimating(true);
     // Determine if drag down was enough to show the overlay
     if (dragDetails.hasDragDownEnough && dragDetails.hasHeight) {

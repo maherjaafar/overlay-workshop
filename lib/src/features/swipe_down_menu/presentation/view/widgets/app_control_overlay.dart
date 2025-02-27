@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:overlay_plus/overlay_plus.dart';
 import 'package:overlays_workshop/src/features/app_control_menu/domain/enums/app_control_overlay_behavior_status.dart';
 import 'package:overlays_workshop/src/features/app_control_menu/domain/extensions/app_control_overlay_build_context_extension.dart';
 import 'package:overlays_workshop/src/features/swipe_down_menu/domain/model/swipe_down_menu_configuration.dart';
@@ -17,14 +16,15 @@ const _kAnimationDuration = Duration(milliseconds: 300);
 class SwipeDownMenu extends StatelessWidget {
   const SwipeDownMenu({
     required this.child,
+    required this.overlayController,
     super.key,
   });
 
   final Widget child;
+  final OverlayPortalController overlayController;
 
   @override
   Widget build(BuildContext context) {
-    final overlayController = OverlayPlusController();
     return RepositoryProvider(
       create: (context) => SwipeDownMenuRepositoryImpl(
         initialDetails: SwipeDownMenuDragDetails.defaultConfig(
@@ -56,12 +56,11 @@ class _SwipeDownMenuView extends StatelessWidget {
 
   final Widget child;
   final Widget overlayContent;
-  final OverlayPlusController overlayController;
+  final OverlayPortalController overlayController;
 
   @override
   Widget build(BuildContext context) {
     final behaviorCubit = context.read<SwipeDownMenuViewNotifier>();
-    final width = context.screenWidth * 0.8;
     return MultiBlocListener(
       listeners: [
         BlocListener<SwipeDownMenuViewNotifier, SwipeDownMenuState>(
@@ -102,10 +101,8 @@ class _SwipeDownMenuView extends StatelessWidget {
           },
         ),
       ],
-      child: OverlayPlus(
+      child: OverlayPortal(
         controller: overlayController,
-        hasPositioned: false,
-        maintainState: true,
         overlayChildBuilder: (_) {
           return BlocProvider.value(
             value: behaviorCubit,
@@ -137,7 +134,6 @@ class _SwipeDownMenuView extends StatelessWidget {
                     builder: (context, state) {
                       return _buildOverlayChild(
                         context: context,
-                        width: width,
                         isAnimating: state.animate,
                         currentOverlayHeight: state.currentOverlayHeight,
                         contentHeight: state.contentHeight,
@@ -164,23 +160,20 @@ class _SwipeDownMenuView extends StatelessWidget {
     required BuildContext context,
     required Widget child,
     required bool isAnimating,
-    required double width,
     required double? contentHeight,
     required double? currentOverlayHeight,
     required double topPosition,
   }) {
     return _buildPositioned(
       context: context,
-      overlayWidth: width,
       isAnimating: isAnimating,
       currentOverlayHeight: currentOverlayHeight,
       topPosition: topPosition,
       // Gesture detector to handle drag events
       child: Material(
-        color: Colors.grey,
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(16),
-        ),
+        color: Colors.white,
+        clipBehavior: Clip.hardEdge,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
         child: AnimatedContainer(
           duration: _kAnimationDuration,
           padding: currentOverlayHeight == null || contentHeight == null
@@ -198,7 +191,6 @@ class _SwipeDownMenuView extends StatelessWidget {
     required BuildContext context,
     required Widget child,
     required bool isAnimating,
-    required double overlayWidth,
     required double? currentOverlayHeight,
     required double topPosition,
     double? leftPosition,
@@ -206,7 +198,6 @@ class _SwipeDownMenuView extends StatelessWidget {
     return AnimatedPositioned(
       duration: isAnimating ? _kAnimationDuration : Duration.zero,
       curve: Curves.easeInOutCubic,
-      width: overlayWidth,
       height: currentOverlayHeight,
       top: topPosition,
       left: leftPosition,
@@ -217,7 +208,7 @@ class _SwipeDownMenuView extends StatelessWidget {
   Widget _buildDragDetector({
     required BuildContext context,
     required Widget child,
-    required OverlayPlusController controller,
+    required OverlayPortalController controller,
   }) {
     final cubit = context.read<SwipeDownMenuViewNotifier>();
     return OverlayWidgets.buildDragDetector(
@@ -255,7 +246,7 @@ class _OverlayBackground extends StatelessWidget {
   });
 
   final VoidCallback onBackgroundTap;
-  final OverlayPlusController overlayController;
+  final OverlayPortalController overlayController;
 
   @override
   Widget build(BuildContext context) {
