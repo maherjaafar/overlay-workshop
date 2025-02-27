@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:overlays_workshop/src/core/constants/app_assets.dart';
+import 'package:overlays_workshop/src/features/home/domain/constants/home_panorama_assets.dart';
+import 'package:overlays_workshop/src/features/home/presentation/widgets/panorama_widget.dart';
 import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view/widgets/app_control_overlay.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -25,12 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Text(widget.title),
         ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              SvgPicture.asset(AppAssets.gdgSwedenLogo),
-            ],
-          ),
+          child: PanoramaWidget(assets: kHomePanoramaAssets),
         ),
       ),
     );

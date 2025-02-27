@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:overlays_workshop/src/core/ui/themes/app_themes.dart';
-import 'package:overlays_workshop/src/features/home/presentation/widgets/home_page.dart';
+import 'package:overlays_workshop/src/features/home/presentation/pages/home_page.dart';
 
 void main() {
   runApp(const MyApp());
