@@ -4,26 +4,20 @@ import 'package:overlays_workshop/src/features/home/presentation/widgets/panoram
 import 'package:overlay_plus/overlay_plus.dart';
 import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view/widgets/swipe_down_menu.dart';
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  late final _overlayController = OverlayPlusController();
-
-  @override
   Widget build(BuildContext context) {
+    final overlayController = OverlayPlusController();
     return SwipeDownMenu(
-      overlayController: _overlayController,
+      overlayController: overlayController,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
+          title: Text(title),
         ),
         body: Center(
           child: PanoramaWidget(assets: kHomePanoramaAssets),
