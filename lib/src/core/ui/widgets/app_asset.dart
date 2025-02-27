@@ -7,7 +7,6 @@ class AppAsset extends StatelessWidget {
     this.fit = BoxFit.contain,
     this.width,
     this.height,
-    this.color,
     super.key,
   });
 
@@ -15,7 +14,6 @@ class AppAsset extends StatelessWidget {
   final BoxFit fit;
   final double? width;
   final double? height;
-  final Color? color; // optional: sometimes you want to color-tint your asset
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +24,6 @@ class AppAsset extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        color: color,
       );
     } else {
       return Image.asset(
@@ -34,7 +31,6 @@ class AppAsset extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        color: color,
       );
     }
   }

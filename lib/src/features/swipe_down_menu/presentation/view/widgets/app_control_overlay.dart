@@ -10,6 +10,7 @@ import 'package:overlays_workshop/src/features/swipe_down_menu/domain/repository
 import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view/widgets/app_control_overlay_content.dart';
 import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view_notifier/swipe_down_menu_state.dart';
 import 'package:overlays_workshop/src/features/swipe_down_menu/presentation/view_notifier/swipe_down_menu_view_notifier.dart';
+import 'package:overlay_plus/overlay_plus.dart';
 
 const _kAnimationDuration = Duration(milliseconds: 300);
 
@@ -21,7 +22,7 @@ class SwipeDownMenu extends StatelessWidget {
   });
 
   final Widget child;
-  final OverlayPortalController overlayController;
+  final OverlayPlusController overlayController;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +57,7 @@ class _SwipeDownMenuView extends StatelessWidget {
 
   final Widget child;
   final Widget overlayContent;
-  final OverlayPortalController overlayController;
+  final OverlayPlusController overlayController;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +102,8 @@ class _SwipeDownMenuView extends StatelessWidget {
           },
         ),
       ],
-      child: OverlayPortal(
+      child: OverlayPlus(
+        hasPositioned: false,
         controller: overlayController,
         overlayChildBuilder: (_) {
           return BlocProvider.value(
@@ -208,7 +210,7 @@ class _SwipeDownMenuView extends StatelessWidget {
   Widget _buildDragDetector({
     required BuildContext context,
     required Widget child,
-    required OverlayPortalController controller,
+    required OverlayPlusController controller,
   }) {
     final cubit = context.read<SwipeDownMenuViewNotifier>();
     return OverlayWidgets.buildDragDetector(
@@ -246,7 +248,7 @@ class _OverlayBackground extends StatelessWidget {
   });
 
   final VoidCallback onBackgroundTap;
-  final OverlayPortalController overlayController;
+  final OverlayPlusController overlayController;
 
   @override
   Widget build(BuildContext context) {

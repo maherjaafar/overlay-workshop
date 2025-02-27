@@ -16,10 +16,10 @@ class PanoramaWidget extends StatefulWidget {
   final Duration period;
 
   @override
-  _PanoramaWidgetState createState() => _PanoramaWidgetState();
+  PanoramaWidgetState createState() => PanoramaWidgetState();
 }
 
-class _PanoramaWidgetState extends State<PanoramaWidget> {
+class PanoramaWidgetState extends State<PanoramaWidget> {
   late Timer _timer;
   int _currentIndex = 0;
 
